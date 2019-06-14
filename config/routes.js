@@ -1,7 +1,10 @@
 
 const axios = require('axios');
 const db = require('./model');
-const genToken = require('../auth/generateToken');
+// token gen
+const jwt = require('jsonwebtoken');
+// hash pw using bcrypt
+const bcrypt = require('bcryptjs');
 
 const { authenticate } = require('../auth/authenticate');
 
@@ -35,7 +38,11 @@ function login(req, res) {
   db.login({username})
   .then(user => {
     if(user && bcrypt.compareSync(password, user.password)) {
-      const token = genToken(user)
+      const payload = {
+        subject: user.id,
+        username: user.username,
+      };
+      const token = jwt.sign(payload, process.env.JWT_SECRET) 
 
       res.status(200).json({success: true, message: `${user.username} has logged in Successfully!`, token})
     }else {
